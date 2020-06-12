@@ -7,7 +7,7 @@
     %%%%%%%%%%%%%%%%%%% option 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%
     % IPsolver(KKT1,x_initial,parameters_subs,warm_start)
     % This option is used when the KKT function is called offline (we need
-    % to call it only once to prepair the the Newton step). Feed the KKT to
+    % to call it only once to prepare the the Newton step). Feed the KKT to
     % this function as first argument. 
     % This option is helpful in Model  predictive control problems. 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
