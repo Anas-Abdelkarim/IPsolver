@@ -20,7 +20,6 @@ l                       = KKT.facts(3)                 ;
 function_structure      = option.function_structure    ;
 settings                = solver_settings              ;
 theta                   = settings.theta               ;
-tau                     = settings.tau                 ;
 nu                      = settings.nu                  ;  
 alpha                   = settings.alpha               ;
 beta                    = settings.beta                ;
@@ -58,30 +57,16 @@ end
    end
   
  
-  %%% check if x_start lambdast satisfies the implicit constraints
-   if ~isempty(option.Index_decision_variables_up)
-       upper_limit=option.decision_variables_limits(:,2);
-       index_upper_limit=  option.Index_decision_variables_up;
-       index_check_up= find(x_start(index_upper_limit)>upper_limit(index_upper_limit));
-       if sum(index_check_up~=0)
-           disp('some variables exceed the upper limit')
-           if option.find_feasible_point==1
-              x_start(index_upper_limit(index_check_up)) =upper_limit(index_upper_limit(index_check_up));
-           end
-       end
-   end
-       
-   if ~isempty(option.Index_decision_variables_low)
+  %%% check if x_start must satisfies the implicit constraints (x_start inside the domain of the optimization problem)
+    index_upper_limit=  option.Index_decision_vars_up;
+    index_lower_limit=  option.Index_decision_vars_low;
+    
+   if ~isempty(index_upper_limit)||~isempty(index_lower_limit)
        lower_limit=option.decision_variables_limits(:,1);
-       index_lower_limit=  option.Index_decision_variables_low;
-       index_check_low= find(x_start(index_lower_limit)<lower_limit(index_lower_limit));
-       if sum(index_check_low~=0)
-           disp('some variables exceed the lower limit')
-           if option.find_feasible_point==1
-              x_start(index_lower_limit(index_check_low)) =lower_limit(index_lower_limit(index_check_low));
-           end
-       end         
-   end
+       upper_limit=option.decision_variables_limits(:,2); 
+       Delta_x=[]; % to tell x_in_domain that we did not start the algorithm yet
+       x_start= x_in_domain(x_start,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit,theta,option.decision_vars_in_domain);     
+    end 
    
    
    if isfield (q,'gamma_optimal')
@@ -131,7 +116,10 @@ while true
     
        %1-###### calculate t  ##########
         eta_hat                   = callfunc(eta_hat_func,input,function_structure)     ;
-        t                         = nu*q/eta_hat ;               
+        t                         = nu*q/eta_hat ;     
+        if q ==0
+            t= inf;
+        end
         input(end)                = t            ;
          
     if KKT.option.data_recording==1; 
@@ -205,9 +193,9 @@ while true
 %         end
      
       % 4-2 ######## Implicit constraints backtrack ###########
-      if ~isempty(option.Index_decision_variables_up)
-          s= variables_backtracking(x,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit);     
-      end
+      if ~isempty(index_upper_limit)||~isempty(index_lower_limit)
+          Delta_x= x_in_domain(x,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit,theta);     
+      end 
          
     % 4-3 ########### residual backtrack ##############
     r_t = callfunc(r_t_func,input,function_structure);

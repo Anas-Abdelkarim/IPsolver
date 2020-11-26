@@ -95,19 +95,18 @@ function option = options_check(option,decision_variables)
        inL(find(isnan(inL)))=1;                            ; % here means no limits
        inL(find(inL==-inf))= UL(find(inL==-inf))-1 ;     ; % means has upper limit
        inL(find(inL== inf))= LL(find(inL== inf))+1 ;     ; % means has lower limit
-       option.decision_variables_in =inL; 
-       option.Index_decision_variables_up =find(UL<inf) ;
-       option.Index_decision_variables_low =find(LL>-inf) ;
+       option.decision_vars_in_domain =inL;                % valid intial start within the limits
+       option.Index_decision_vars_up =find(UL<inf) ;
+       option.Index_decision_vars_low =find(LL>-inf) ;
        
        end
-   else
-       option.decision_variables_limits =[] ;
-       option.Index_decision_variables_up =[] ;
-       option.Index_decision_variables_low =[] ;
-       option.decision_variables_in =[] ;
-      option.Index_decision_variables_up=[];
-       option.Index_decision_variables_low =[]; 
-      
+     else
+      disp("option.decision_variables_limits=[]")
+      option.decision_vars_limits =[] ;
+      option.Index_decision_vars_up =[] ;
+      option.Index_decision_vars_low =[] ;
+      option.decision_vars_in_domain =[] ;
+          
    end
    
   

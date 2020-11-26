@@ -15,6 +15,9 @@ else
         f=f';
    end
 end
+x = sym('x' ,[n,1],'real');
+decision_variables= x;
+
 if isempty(Aeq)
  Aeq=double.empty(0 ,n);
  beq=double.empty(0 ,1); 
@@ -37,8 +40,6 @@ else
 end
 
 
-x = sym('x' ,[n,1],'real');
-decision_variables= x;
 f_0= .5*(x'*H*x)+f'*x;
 equality= Aeq*x==beq;
 f_i= [ A*x<=b; f_i_1;f_i_2];

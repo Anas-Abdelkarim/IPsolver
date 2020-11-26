@@ -14,7 +14,8 @@ n                     = KKT.facts(1)                ; %number of the decsion var
 q                     = KKT.facts(2)                ; %number of the inqualities 
 l                     = KKT.facts(3)                ; %number of the  equalities
 settings              = solver_settings             ;
-nu                    = settings.nu                 ;  
+nu                    = settings.nu                 ;
+theta                 = settings.theta              ;  
 alpha                 = settings.alpha              ;
 beta                  = settings.beta               ;
 epsilon               = settings.epsilon            ;
@@ -134,15 +135,14 @@ end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
     %%%%%%%% check if x_start must satisfies the implicit constraints
-   if ~isempty(option.Index_decision_variables_up)
-       upper_limit=option.decision_variables_limits(:,2);
-       index_upper_limit=  option.Index_decision_variables_up;
-   end
-       
-   if ~isempty(option.Index_decision_variables_low)
+   index_upper_limit=  option.Index_decision_vars_up;
+   index_lower_limit=  option.Index_decision_vars_low;
+    
+   if ~isempty(index_upper_limit)||~isempty(index_lower_limit)
        lower_limit=option.decision_variables_limits(:,1);
-       index_lower_limit=  option.Index_decision_variables_low;
-   end   
+       upper_limit=option.decision_variables_limits(:,2);       
+   end  
+    
    %%%%%%%%%%%%%%%%%
     
    
@@ -220,9 +220,9 @@ while true
     
     s= 1;
       % 3-A ######## Implicit constraints backtrack ###########
-      if ~isempty(option.Index_decision_variables_up)
-          s= variables_backtracking(x,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit);     
-      end
+      if ~isempty(index_upper_limit)||~isempty(index_lower_limit)
+          Delta_x= x_in_domain(x,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit,theta);     
+        end 
     
       %%%%%%% 3-B  check if we are still inside the interior 
       
@@ -284,8 +284,8 @@ while true
     num_inner_iteration_record{num_iteration}=   num_inner_iteration;
     
     %3- ##### Stopping criterion for barrier method ##########
-    
-   if  1/t<=epsilon            
+
+   if  1/t<=epsilon     ||q==0       
        break
    end
 %    tau=.01;nu=50;   to test my updating t
@@ -303,13 +303,13 @@ bar_solver.x_optimal                  = x                                       
 bar_solver.cost_value                 = cost_value                                  ;
 bar_solver.gamma_optimal              = gamma                                       ;
 bar_solver.num_iteration              = num_iteration                               ; 
+bar_solver.num_iteration_Newton       = num_iteration_Newton                        ;
 if KKT.option.data_recording==1                                                     ; 
 bar_solver.s_record                   = array2table([s_record{:}])                  ;
 bar_solver.Newton_step_record         = array2table([Newton_step_record{:}])        ;
 bar_solver.t_record                   = array2table([t_record{:}])                  ; 
 bar_solver.x_record                   = array2table([x_record{:}])                  ;
 bar_solver.gamma_record               = array2table([gamma_record{:}])              ;
-bar_solver.num_iteration_Newton       = num_iteration_Newton                        ;
 bar_solver.num_inner_iteration_record = array2table([num_inner_iteration_record{:}]);
 bar_solver.search_x_start             = search_x_start                              ; 
 end

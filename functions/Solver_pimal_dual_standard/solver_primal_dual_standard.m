@@ -22,7 +22,6 @@ function_structure      = option.function_structure    ;
 
 settings                = solver_settings              ;
 theta                   = settings.theta               ;
-tau                     = settings.tau                 ;
 nu                      = settings.nu                  ;  
 alpha                   = settings.alpha               ;
 beta                    = settings.beta                ;
@@ -73,6 +72,7 @@ end
          return       
     end
     end
+    
       
    
    
@@ -86,8 +86,8 @@ end
                       disp('WARNING: x_initial is empty. We attempt to find a x_initial')  
                       disp('WARNING: To cancel this option set option.find_feasible_point=0')
                       search_x_start_flag=1 ;
-                      if ~isempty(option.decision_variables_in)
-                      x_start_search =  option.decision_variables_in;  
+                      if ~isempty(option.decision_vars_in_domain)
+                      x_start_search =  option.decision_vars_in_domain;  
                       else
                       x_start_search= settings.x_0*ones(n,1);  
                       end
@@ -96,20 +96,21 @@ end
                       x_start_search = [level_unique; x_start_search];                       
                   end
              end
-       end
+       end     
    end
    
-    %%%%%%%% check if there are implicit constraints
-   if ~isempty(option.Index_decision_variables_up)
-       upper_limit=option.decision_variables_limits(:,2);
-       index_upper_limit=  option.Index_decision_variables_up;
-   end
-       
-   if ~isempty(option.Index_decision_variables_low)
+       %%%%%%%% check if x_start must satisfies the implicit constraints
+   index_upper_limit=  option.Index_decision_vars_up;
+   index_lower_limit=  option.Index_decision_vars_low;
+    
+   if ~isempty(index_upper_limit)||~isempty(index_lower_limit)
        lower_limit=option.decision_variables_limits(:,1);
-       index_lower_limit=  option.Index_decision_variables_low;
-   end   
-  %%%%%%%%%%%%%%%%%     
+       upper_limit=option.decision_variables_limits(:,2);       
+   end  
+    
+   %%%%%%%%%%%%%%%%%
+  
+   
    
    %%%%%%%%% call the solver to find x_start %%%%%%%%
    search_x_start=[];
@@ -117,19 +118,8 @@ end
      KKT.KKT_x_start.option.search_x_start_flag=1;
      [search_x_start] = solver_primal_dual_standard(KKT.KKT_x_start,x_start_search,parameters_subs,[]);  
       x_start= search_x_start.x_optimal(2:end);             
-   end
+   end   
    
-    %%%%%%%% check there are implicit constraints
-       if ~isempty(option.Index_decision_variables_up)
-       upper_limit=option.decision_variables_limits(:,2);
-       index_upper_limit=  option.Index_decision_variables_up;
-       end
-       
-       if ~isempty(option.Index_decision_variables_low)
-       lower_limit=option.decision_variables_limits(:,1);
-       index_lower_limit=  option.Index_decision_variables_low;
-       end   
-    %%%%%%%%%%%%%%%%% 
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
    
    %% Initialization 
@@ -164,6 +154,9 @@ while true
     %1-###### calculate t  ##########
      eta_hat                   = callfunc(eta_hat_func,input,function_structure)     ;
      t                         = nu*q/eta_hat ;
+      if q ==0
+            t= inf;
+        end
      input(end)               = t            ;
   
     
@@ -233,9 +226,9 @@ while true
         
         
       % 3-2 ######## Implicit constraints backtrack ###########
-      if ~isempty(option.Index_decision_variables_up)
-          s= variables_backtracking(x,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit);     
-      end
+      if ~isempty(index_upper_limit)||~isempty(index_lower_limit)
+          Delta_x= x_in_domain(x,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit,theta);     
+        end 
    
     % 3-3 ########### residual backtrack ##############
   

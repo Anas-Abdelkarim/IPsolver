@@ -187,12 +187,12 @@ else
 eta_hat =1e-100 ;
 end
 eta_hat_func= sym2func(eta_hat,'Vars',input,option);
-
-if   ~isempty(g) % means we have inequality constraints 
-  g_func    = sym2func(g,'Vars',input,option); % for evaluation after finishing the calculations
-else
- g_func   =  [];
-end
+ g_func    = sym2func(g,'Vars',input,option); % for evaluation after finishing the calculations
+% if   ~isempty(g) % means we have inequality constraints 
+%   g_func    = sym2func(g,'Vars',input,option); % for evaluation after finishing the calculations
+% else
+%  g_func   =  [];
+% end
 %% return
 KKT.KKT_matrix_func            = KKT_matrix_func;
 KKT.KKT_vector_func            = KKT_vector_func;
@@ -204,13 +204,13 @@ KKT.r_dual_func                = r_dual_func ;
 KKT.r_pri_func                 = r_pri_func  ; 
 KKT.f                          = f           ;% cost function (symbolic varibales form)
 KKT.f_i                        = g           ;% inequality function without conversion (symbolic varibales form)
-KKT.equality                   = h(1+q:end)  ;% equality function without conversion (symbolic varibales form)
+KKT.equality                   = h           ;% equality function without conversion (symbolic varibales form)
 KKT.f_func                     = f_func      ;
 KKT.g_func                     = g_func      ; %inequality function of slack variables (symbolic varibales form)
 KKT.option                     = option      ; %inequality function of slack variables (symbolic varibales form)
 KKT.decision_variables         = decision_variables;
 KKT.parameters                 = parameters;
 KKT.elimination_flag           = elimination_flag   ;
-KKT.algorithm                  ='slack-barrier'; 
+KKT.algorithm                  ='primal_dual'; 
 KKT.facts                      = [n q l]; %number of the decsion variable;inqualities and equalities
 end
