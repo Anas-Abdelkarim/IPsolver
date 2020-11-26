@@ -31,16 +31,16 @@ decision_variables= x;  % the decision variables names of the optimization probl
 parameters        = [reshape(A,[],1);b;u];  % to convert the matrix to vector form we use reshape
 
 f_0 =  (x(1)-.5)^4 + u*(x(2)-1)^4; % the cost function 
-f_i=[    -1        <=x(1)^2
-         -1        <=x(2)^2
+f_i=[    -1        <=x(1)^2        % redundant constraints used to add nonlinear constraints
+         -1        <=x(2)^2         % redundant constraints used to add nonlinear constraints
          A*x       <=  b     ]; %the inequality constraints  %the inequality constraints
 
 equality=[];       %the equality constraints is empty
 
-% algorithm = 'slack_barrier'   ;      % slack barrier solver: this algorithm does NOT require feasible point 
+%algorithm = 'slack_barrier'   ;      % slack barrier solver: this algorithm does NOT require feasible point (THIS ALGORITHM IS NOT OPEN SOURCE YET) 
 %algorithm = 'primal_dual_standard' ; % primal dual solver: this algorithm does require feasible start  point 
-algorithm = 'barrier'  ;             % barrier solver: this algorithm does require feasible start point 
-% algorithm    = 'primal_dual';          % primal dual with: this algorithm does NOT require feasible start point 
+%algorithm = 'barrier'  ;             % barrier solver: this algorithm does require feasible start point 
+algorithm    = 'primal_dual';          % primal dual with: this algorithm does NOT require feasible start point 
 %% 1- Newton step :
   Option.elimination=1; % this option builds the Newton step based on the reduced KKT system (save time)
   Option.data_recording=1; % with this option the solver does not record ever iteration data (save time and memory)
@@ -49,8 +49,11 @@ algorithm = 'barrier'  ;             % barrier solver: this algorithm does requi
 
   %% call the solver
   % online calculation
-
-x_initial =[4;5];    
+if strcmp(algorithm, 'barrier')||strcmp(algorithm, 'primal_dual_standard')
+x_initial =[4.5;4]; %   feasible x_initial  
+else 
+x_initial =[-19;-10]; %   
+end
 A_subs= [-3  1 
           2  1 
          .5 -1];
