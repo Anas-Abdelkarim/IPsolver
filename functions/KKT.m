@@ -104,12 +104,13 @@ if isrow(decision_variables)
     decision_variables=cell2sym(decision_variables);
 end
 
-
+if ~isempty(parameters)
+   assume(parameters, 'real')
 if isrow(parameters) 
-    assume(parameters, 'real')
-    parameters=parameters';
+   parameters =sym2cell(parameters)';
+    parameters=cell2sym(parameters);
+  end
 end
-
 
 
 if isrow(f_i)
@@ -138,7 +139,7 @@ switch algorithm
         [KKT] = KKT_barrier(decision_variables,f_0,f_i,equality,parameters,option);
       
     otherwise
-        error("algorithm must be one of the following: 'primal-dual','slack-barrier', 'barrier', or 'slack-barrier'. Type (help KKT) for more details")
+        error("algorithm must be one of the following: 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help KKT) for more details")
   
 end
 

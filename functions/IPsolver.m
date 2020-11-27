@@ -7,7 +7,7 @@
     %%%%%%%%%%%%%%%%%%% option 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%
     % IPsolver(KKT1,x_initial,parameters_subs,warm_start)
     % This option is used when the KKT function is called offline (we need
-    % to call it only once to prepare the the Newton step). Feed the KKT to
+    % to call it only once to prepair the the Newton step). Feed the KKT to
     % this function as first argument. 
     % This option is helpful in Model  predictive control problems. 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -226,7 +226,7 @@ switch KKT1.algorithm
      case 'barrier'
         [IPsolver] = solver_barrier(KKT1,x_initial,parameters_subs,warm_start);
     otherwise
-      error("algorithm must be one of the following: 'primal-dual','slack-barrier', 'barrier', or 'slack-barrier'. Type (help IPsolver) for more details")
+      error("algorithm must be one of the following: 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")
 
 end
  end
