@@ -31,8 +31,8 @@ decision_variables= x;  % the decision variables names of the optimization probl
 parameters        = [reshape(A,[],1);b;u];  % to convert the matrix to vector form we use reshape
 
 f_0 =  (x(1)-.5)^4 + u*(x(2)-1)^4; % the cost function 
-f_i=[    -1        <=x(1)^2        % redundant constraints used to add nonlinear constraints
-         -1        <=x(2)^2         % redundant constraints used to add nonlinear constraints
+f_i=[    -1        <=x(1)^2        % redundant constraints used to try nonlinear constraints
+         -1        <=x(2)^2        % redundant constraints used to try nonlinear constraints
          A*x       <=  b     ]; %the inequality constraints  %the inequality constraints
 
 equality=[];       %the equality constraints is empty

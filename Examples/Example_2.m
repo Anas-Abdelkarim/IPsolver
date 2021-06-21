@@ -19,8 +19,8 @@
 
 
 syms x1  x2   a b c   real
-decision_variables= [x1 x2]; % the decision variables names of the optimization problem 
-parameters        = [a b c]; 
+decision_variables = [x1 x2]; % the decision variables names of the optimization problem 
+parameters         = [a b c]; 
 
 f_0      =    (x1-.5)^4 + a*(x2-1)^4     ; % the cost function 
 f_i      = [     x2        <=  14-2*x1
