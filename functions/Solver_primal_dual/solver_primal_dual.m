@@ -224,9 +224,9 @@ while true
      
     %4- ###### variables update ##########
      x            = x       + s*Delta_x            ;  
-     lambda       = lambda      + s*Delta_lambda   ;
-     gamma        = gamma  + s*Delta_gamma         ;
-     slack        = slack  + s*Delta_slack         ;
+     lambda       = lambda  + s*Delta_lambda   ;
+     gamma        = gamma   + s*Delta_gamma         ;
+     slack        = slack   + s*Delta_slack         ;
       
  
     input        = [x;parameters_subs;slack;lambda;gamma;t];     
@@ -239,16 +239,16 @@ while true
            norm(r_pri)  <epsilon_feas&&...
            norm(r_dual) <sqrt(epsilon_feas);
     if stop
-        break
-       if KKT.option.data_recording  ==1 ; 
+         if KKT.option.data_recording  ==1  
            t_record{num_iteration+1} = t  ;       
            s_record{num_iteration}   = s  ;
-       end   
+       end
+       break
     end
     
-   if iterations_max==num_iteration
-        break 
+   if iterations_max==num_iteration         
         warning('The solver has reached the maximum number of iterations')
+        break
     end
    
 end
