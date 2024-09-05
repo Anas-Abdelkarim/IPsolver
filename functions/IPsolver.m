@@ -223,10 +223,12 @@ switch KKT1.algorithm
         [IPsolver] = solver_primal_dual(KKT1,x_initial,parameters_subs,warm_start);    
      case 'primal_dual_standard'    
         [IPsolver] = solver_primal_dual_standard(KKT1,x_initial,parameters_subs,warm_start);
+     case 'PD_standard_LS'    
+        [IPsolver] = solver_PD_standard_LS(KKT1,x_initial,parameters_subs,warm_start);
      case 'barrier'
         [IPsolver] = solver_barrier(KKT1,x_initial,parameters_subs,warm_start);
     otherwise
-      error("algorithm must be one of the following: 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")
+      error("algorithm must be one of the following: 'PD_standard_LS', 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")
 
 end
  end
