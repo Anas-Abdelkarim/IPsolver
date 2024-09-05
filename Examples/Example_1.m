@@ -33,7 +33,11 @@ equality=[    x2-3*x1     ==  -6        ];  %the equality constraints.
 
 x_initial=[3 ,3];
 
-solution= IPsolver(x_initial,decision_variables,f_0,f_i,equality);
+
+algorithm = 'primal_dual_standard'   ;      % slack barrier solver: this algorithm does NOT require feasible point 
+%algorithm    = 'primal_dual';          % primal dual with: this algorithm does NOT require feasible start point 
+
+solution= IPsolver(x_initial,decision_variables,f_0,f_i,equality,algorithm);
 
 % Extract the results
 number_of_iterations       =  solution.num_iteration
