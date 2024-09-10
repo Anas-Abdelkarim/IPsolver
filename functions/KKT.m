@@ -136,12 +136,14 @@ switch algorithm
     case 'primal_dual_standard'
         [KKT] = KKT_primal_dual_standard(decision_variables,f_0,f_i,equality,parameters,option);  
     case 'PD_standard_LS'
-        [KKT] = KKT_PD_standard_LS(decision_variables,f_0,f_i,equality,parameters,option);  
+        [KKT] = KKT_PD_standard_LS(decision_variables,f_0,f_i,equality,parameters,option);
+    case 'AL_LS'
+        [KKT] = KKT_AL_LS(decision_variables,f_0,f_i,equality,parameters,option);
     case 'barrier'
         [KKT] = KKT_barrier(decision_variables,f_0,f_i,equality,parameters,option);
       
     otherwise
-      error("algorithm must be one of the following: 'PD_standard_LS', 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")
+      error("algorithm must be one of the following:'AL_LS', 'PD_standard_LS', 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")
   
 end
 
