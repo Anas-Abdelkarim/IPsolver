@@ -43,6 +43,7 @@ for check_options = 1
     gamma  = sym('gamma',[l 1],'real');     % the dual variables for the equaltiy constriants
     syms t       real;
 
+    L = 0;
 
 
     %% the Newten step
@@ -70,7 +71,7 @@ for check_options = 1
         information_matrix = [];
 
     end
-        f_0_tatal = 0 + f_0_cost;
+    f_0_tatal = 0 + f_0_cost;
 
     if ~isempty(f_0_cost)
         jac_f_0_cost   = jacobian(f_0_cost,X_); % the first derivate of cost, i.e nebla_f_0
@@ -87,9 +88,14 @@ for check_options = 1
         f_0_tatal = f_0_tatal + error{1,i}'*information_matrix*error{1,i};
     end
 
+    L = L + f_0_tatal;
+
+
     % inequality constraints
     if q>0
         f_i = lhs(f_i) - rhs(f_i) ;  % the inequality constraints in form f<=0
+        L = L + lambda'*f_i ;
+
     end
     for i= 1 : q
         error_ineq = [f_i(i), lambda(i)]';
@@ -107,6 +113,8 @@ for check_options = 1
     omega_eq = [0 1; 1 0];
     if l>0
         equality =  lhs(equality) - rhs(equality) ;  % the equality constraints in form g==0
+        L = L + gamma'*equality;
+
     end
     for i= 1 : l
         error_eq = [equality(i), gamma(i)]';
@@ -134,12 +142,15 @@ for check_options = 1
         end
     end
 
+
+ 
     %% Preparation for the solver
 
     input= [decision_variables;parameters;lambda;gamma;t];
     KKT_matrix_func= sym2func(KKT_matrix,'Vars',input,option) ;
     KKT_vector_func= sym2func(KKT_vector,'Vars',input,option);
-   
+
+
     % surrogate duality gap
     if   ~isempty(f_i)
         eta_hat = (-f_i)'*lambda;
@@ -153,6 +164,9 @@ for check_options = 1
     r_pri_func  = sym2func(equality,'Vars',input,option);
     % The handle function for cost funtion equality and dynamic cost function
     f_0_func    = sym2func(f_0_tatal,'Vars',input,option); % for evaluation after finishing the calculations
+    grad_L = gradient(L,decision_variables);
+    grad_L_func      = matlabFunction(grad_L,'Vars',input); % for evaluation after finishing the calculations
+
     % grad_f_0_func=sym2func(grad_f_0,'Vars',input,option); % for evaluation after finishing the calculations
     %  equality_func=sym2func(equality,'Vars',input,option);
     if   ~isempty(f_i)
@@ -169,6 +183,7 @@ for check_options = 1
     KKT.r_dual_func                = r_dual_func ;
     KKT.r_pri_func                 = r_pri_func  ;
     KKT.f_0                        = f_0         ;% symbolic varibales for the  cost function
+    KKT.grad_L_func                = grad_L_func  ;% symbolic varibales for the  cost function
     KKT.f_i                        = f_i     ;% symbolic varibales for the  inequality function without conversion
     KKT.equality                   = equality ;% symbolic variables for the equality==0
     KKT.f_0_func                   = f_0_func    ;
