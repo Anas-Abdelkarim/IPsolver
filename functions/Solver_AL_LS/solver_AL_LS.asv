@@ -15,12 +15,12 @@ l                       = KKT.facts(3)                 ;
 function_structure      = option.function_structure    ;
 settings                = solver_settings              ;
 
-ro_update               = settings.ro_update           ;
-ro_ineq0                = settings.ro_ineq0            ;
-ro_eq0                  = settings.ro_eq0              ;
+
+ro_ineq0                 = settings.ro_ineq0             ;
+ro_eq0                   = settings.ro_eq0               ;
 epsilon_feas            = settings.epsilon_feas        ;
 iterations_max          = settings.iterations_max      ;
-dual_step               = settings.dual_step;
+
 % recodres
 if KKT.option.data_recording==1
     num_rec                    =settings.records_num;
@@ -61,9 +61,8 @@ end
 % prepeartion of input vector
 num_iteration       = 0        ;
 x                   = x_start;
-ro_ineq = ro_ineq0 * ones(q,1) ;
-ro_eq   = ro_eq0 * ones(l,1) ;
-
+ro_ineq =ro_ineq0 * ones(q,1) ;
+ro_eq =ro_eq0 * ones(l,1) ;
 
 f_i    =    callfunc(f_i_func,[x; parameters] ,function_structure);
 slack  = max(0,-[lambda./(2*ro_ineq)+f_i; parameters]);
@@ -105,6 +104,62 @@ while true
 
 
 
+    %{
+    %2-###### Line search (back-traking) ##########
+    s= 1;
+    % 4-1 ######## keep slack  positive after updating ###########
+    index2= find(lambda+s*Delta_lambda<=0);
+    if ~isempty(index2)
+        s_safe =  theta*min(-lambda(index2)./Delta_lambda(index2)); % the mininum s that guarantee lambda remain non negative
+        s = (min(s,s_safe));
+    end
+
+    index_pos_slack= find(slack+s*Delta_slack<=0);
+    if ~isempty(index_pos_slack)
+        s_safe =  theta*min(-slack(index_pos_slack)./Delta_slack(index_pos_slack)); % the mininum s that guarantee lambda remain non negative
+        s = (min(s,s_safe));
+        Delta_slack(index_pos_slack)= -theta*slack(index_pos_slack);
+    end
+
+    %        % correction of Lambda blocking the movement
+    %         if s<s_efficient
+    %            if ~isempty(index2)
+    %         lambda(index2) = lambda(index2)+ lamda_correction_factor  ;
+    %        input= [x;parameters_subs;slack;lambda;gamma;t];
+    %        %disp ('lamba small')
+    %            end
+    %         end
+
+    % 4-2 ######## Implicit constraints backtrack ###########
+    if ~isempty(index_upper_limit)||~isempty(index_lower_limit)
+        Delta_x= x_in_domain(x,Delta_x,upper_limit,lower_limit,index_upper_limit,index_lower_limit,theta);
+    end
+
+    % 4-3 ########### residual backtrack ##############
+    r_t = callfunc(r_t_func,input,function_structure);
+    while true
+
+
+        c_backTracking =c_backTracking+1 ;
+
+        x_update     = x       +  s*Delta_x        ; % only proposed update
+        lambda_update= lambda  +  s*Delta_lambda   ;
+        gamma_update = gamma   +  s*Delta_gamma    ;
+        slack_update = slack   +  s*Delta_slack    ;
+
+        input_update =[x_update;parameters_subs;slack_update;lambda_update;gamma_update;t];
+
+        r_t_update = callfunc(r_t_func,input_update,function_structure);
+        if norm(r_t_update)>(1-beta*s)*norm(r_t) & s>1e-20
+            s=alpha/c_backTracking*s;
+        else
+            break
+        end
+    end
+    %}
+
+
+
     %4- ###### variables update ##########
     x            = x       + s*Newton_step;
 
@@ -112,14 +167,12 @@ while true
     f_i    =    callfunc(f_i_func,[x; parameters] ,function_structure);
     equality =   callfunc(equality_func,[x; parameters] ,function_structure);
 
-    lambda       = max(0, lambda  + 2*ro_ineq.*f_i)        ;
+    lambda       = max(0, lambda  + ro_ineq.*f_i)        ;
     slack        = max(0,-[lambda./(2*ro_ineq)+f_i; parameters]);
-    gamma        = gamma   +2*ro_eq.*equality            ;
+    gamma        = gamma   + 2*ro_eq.*equality            ;
+    lambda       = max(0, lambda  + 2*f_i)        ;
 
-   
-   
-   
-
+   ro_ineq 
 
     input= [x; parameters; slack; lambda; gamma; ro_ineq; ro_eq];
 
@@ -127,6 +180,7 @@ while true
 
     %1- ##### termination condition ##########
     grad_L =   callfunc(grad_L_func,input ,function_structure);
+
 
     stop = norm(grad_L) <epsilon_feas && ...
         norm(equality)  <epsilon_feas&&...
@@ -140,17 +194,10 @@ while true
         break
     end
 
-
- 
-
-   
 end
 
-
-
-
 cost_value = callfunc(f_0_func,input,function_structure)                           ;
-  
+
 %% return
 AL_LS_solver.x_optimal                  = x                                               ;
 AL_LS_solver.cost_value                 = cost_value                                      ;

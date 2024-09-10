@@ -7,6 +7,10 @@ function f = callfunc(func,input,function_structure)
 % or  '@(in1,in2){cell}'
 
 % detect the function structure if it is not given
+if isempty(func)
+    f = [];
+    return
+end 
 if ~exist('function_structure')
 function_structure=[];    
 end
