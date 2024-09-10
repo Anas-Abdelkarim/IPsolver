@@ -34,24 +34,35 @@ end
 
 %% variables decleration
 n =  length(decision_variables) ; % n is the number of the decision variables
-q =  length(f_i);  % q is the number of the inqaulity constraints 
+q =  length(f_i);  % q is the number of the inqaulity constraints
 l =  length(equality); % p is the number of the eqautilty constraints
-syms t       real; 
+gamma  = sym('gamma',[l 1],'real');     % the dual variables for the equaltiy constriants 
+
+
+L = f_0;
+
+syms t       real;
 %%  First and (second) derivates*
 %inequaility constraints
+f = [];
 if   ~isempty(f_i)
-f = lhs(f_i) - rhs(f_i) ;  % the inequaility constraints in form f<=0 
+    f = lhs(f_i) - rhs(f_i) ;  % the inequaility constraints in form f<=0
 end
 if   ~isempty(f)
-f_0_bar = f_0-sum(log(-f)/t) ;% approximation of the inequalities 
+    f_0_bar = f_0-sum(log(-f)/t) ;% approximation of the inequalities
+    L = L + f_0_bar;
+else
+    f_0_bar = f_0;
 end
+ 
 grad_f_0_bar   = jacobian(f_0_bar,decision_variables)' ; % the first derivate of cost, i.e nebla_f
-hess_f_0_bar   =  hessian(f_0_bar,decision_variables)  ;
+hess_f_0_bar   = hessian(f_0_bar,decision_variables)  ;
 %equaility constraints
 
 if   ~isempty(equality)
     equality             = lhs(equality) - rhs(equality); %the equaility constraints in form Ax-b=0 
     A                    = jacobian(equality,decision_variables) ; % the first derivate of equaility, i.e A matrix.
+    L = L  + gamma'*equality;
     if ~isempty(symvar(A))  %means some equality has symbolic variables
        assume(A,'real') 
     end 
@@ -64,7 +75,7 @@ end
      KKT_matrix = [ hess_f_0_bar         A'   
                             A     zeros(l,l)] ;
           
-     KKT_vector = -[grad_f_0_bar; zeros(l,1)] ;
+     KKT_vector = -[grad_f_0_bar + A'*gamma; equality] ;
      
      Delta_x_bar      = sym('Delta_x_bar',[n 1],'real');  % the update values of the decision variables
      decrement=  Delta_x_bar'*grad_f_0_bar ;
@@ -110,13 +121,17 @@ end
  
 %% Preparation for the interior point solver
 
-input= [decision_variables;parameters;t];
+input= [decision_variables;parameters;gamma;t];
 % the newton step
 KKT_matrix_func= sym2func(KKT_matrix,'Vars',input,option) ;
 %KKT_matrix_factorized.L= matlabFunction(L,'Vars',input,option);
 %KKT_matrix_factorized.U= matlabFunction(U,'Vars',input,option);
 %KKT_matrix_factorized.P= P                             ;
 KKT_vector_func= sym2func(KKT_vector,'Vars',input,option);
+grad_L       = gradient(L,decision_variables);
+grad_L_func  = matlabFunction(grad_L,'Vars',input); % for evaluation after finishing the calculations
+
+
 % The cost function 
 f_0_func    = sym2func(f_0,'Vars',input,option); % for evaluation after finishing the calculations
 f_0_bar_func      = sym2func(f_0_bar,'Vars',input,option); % the approximated cost function  
@@ -133,6 +148,7 @@ KKT.KKT_vector_func             = KKT_vector_func;
 KKT.f_0_func                    = f_0_func   ; % for evaluation after finishing the calculations
 KKT.f_i_func                    = f_i_func   ;  % for evaluation after finishing the calculations
 KKT.f_0_bar_func                = f_0_bar_func   ;
+KKT.grad_L_func                 = grad_L_func    ; 
 KKT.equality_func               = equality_func  ;
 KKT.decrement_func              = decrement_func ;
 KKT.f_0                         = f_0            ;
