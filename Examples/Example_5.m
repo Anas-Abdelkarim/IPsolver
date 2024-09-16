@@ -18,8 +18,18 @@ clc
 clear
 
 syms x  y   s1 s2  k1 k2 real
+flag_LS_cost = 0;
 
-f_0     =    (x-50)^2 + (y-25)^2; % the cost function
+switch flag_LS_cost
+    case 0
+        f_0     =    (x-50)^2 + (y-25)^2; % the cost function
+    case 1
+        f_0.error = {x-50,y-25};
+        f_0.omega = {1,1};
+
+end
+
+ 
 f_i     = [ x <=  15
             y>=7
                   ];
@@ -32,7 +42,7 @@ equality=     x+y ==  20;                        %the equality constraints.
 decision_variables= [x y];  % the decision variables names of the optimization problem
 x_initial=[-2000,10];
 
-switch 4
+switch 5
     case 1
         algorithm    = 'barrier';
     case 2
@@ -51,4 +61,10 @@ number_of_iterations       =  solution.num_iteration
 x_optimal_solution         =  solution.x_optimal
 minimum_cost               =  solution.cost_value
 solver_time                =  solution.solver_time
+%{
+solution.lambda_optimal
+solution.gamma_optimal
+solution.x_optimal
+
+%}
 %num_iteration_Newton       = solution.num_iteration_Newton

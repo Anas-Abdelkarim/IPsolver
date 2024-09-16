@@ -293,7 +293,8 @@ while true
 
             stop = norm(grad_L) <epsilon_feas && ...
                    norm(r_pri)  <epsilon_feas&&...
-                   sum(max(0,f_i) >epsilon_feas)==0  
+                   sum(max(0,f_i) >epsilon_feas)==0&&...
+                   t >100 ; 
                      
         case 2
             r_daul      = callfunc(r_dual_func,input,function_structure)      ;

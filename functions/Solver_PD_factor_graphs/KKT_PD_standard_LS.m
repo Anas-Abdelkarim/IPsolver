@@ -44,7 +44,7 @@ for check_options = 1
     syms t       real;
 
     L = 0;
-
+     
 
     %% the Newten step
     if isrow(decision_variables)
@@ -56,13 +56,13 @@ for check_options = 1
 
 
     %% * First and (second) derivates*
-
+    grad_L =0;
     %1- cost function
     if isstruct(f_0)
         if isfield(f_0, 'cost')
             f_0_cost = f_0.cost;
         else
-            f_0_cost =[];
+            f_0_cost = 0;
         end
         error = f_0.error;
         information_matrix = f_0.omega;
@@ -78,6 +78,8 @@ for check_options = 1
         hess_f_0_cost   = hessian(f_0_cost,X_)  ;
         KKT_matrix = KKT_matrix + hess_f_0_cost ;
         KKT_vector = KKT_vector + -jac_f_0_cost' ;
+        grad_L = grad_L + jacobian(f_0_cost,decision_variables)';
+
     end
 
     %2 error terms (cost) (least squares)
@@ -85,17 +87,14 @@ for check_options = 1
         jac_error_cost = jacobian(error{1,i},X_);
         KKT_matrix = KKT_matrix + jac_error_cost'*information_matrix{1,i}*jac_error_cost;
         KKT_vector = KKT_vector + -jac_error_cost'*information_matrix{1,i}*error{1,i};
-        f_0_tatal = f_0_tatal + error{1,i}'*information_matrix*error{1,i};
+        f_0_tatal = f_0_tatal + error{1,i}'*information_matrix{1,i}*error{1,i};
+        grad_L = grad_L + jacobian(error{1,i},decision_variables)'*information_matrix{1,i}*error{1,i};
     end
 
-    L = L + f_0_tatal;
-
-
+    
     % inequality constraints
     if q>0
         f_i = lhs(f_i) - rhs(f_i) ;  % the inequality constraints in form f<=0
-        L = L + lambda'*f_i ;
-
     end
     for i= 1 : q
         error_ineq = [f_i(i), lambda(i)]';
@@ -106,6 +105,8 @@ for check_options = 1
 
         KKT_matrix = KKT_matrix + jac_error_ineq' * omega_ineq * jac_error_ineq;
         KKT_vector = KKT_vector + jac_error_ineq' * Weighted_error;
+        grad_L =  grad_L + lambda(i)*jacobian(f_i(i),decision_variables)';
+
     end
 
 
@@ -113,14 +114,14 @@ for check_options = 1
     omega_eq = [0 1; 1 0];
     if l>0
         equality =  lhs(equality) - rhs(equality) ;  % the equality constraints in form g==0
-        L = L + gamma'*equality;
-
     end
+
     for i= 1 : l
         error_eq = [equality(i), gamma(i)]';
         jac_error_eq = jacobian(error_eq,X_);
         KKT_matrix = KKT_matrix + jac_error_eq'*omega_eq*jac_error_eq;
         KKT_vector = KKT_vector + -jac_error_eq'*omega_eq*error_eq;
+        grad_L =  grad_L + gamma(i)*jacobian(equality(i),decision_variables)';
     end
 
 
@@ -164,7 +165,7 @@ for check_options = 1
     r_pri_func  = sym2func(equality,'Vars',input,option);
     % The handle function for cost funtion equality and dynamic cost function
     f_0_func    = sym2func(f_0_tatal,'Vars',input,option); % for evaluation after finishing the calculations
-    grad_L = gradient(L,decision_variables);
+
     grad_L_func      = matlabFunction(grad_L,'Vars',input); % for evaluation after finishing the calculations
 
     % grad_f_0_func=sym2func(grad_f_0,'Vars',input,option); % for evaluation after finishing the calculations

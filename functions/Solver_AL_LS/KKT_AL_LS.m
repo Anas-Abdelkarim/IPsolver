@@ -11,8 +11,8 @@ function [KKT] = KKT_AL_LS(decision_variables,f_0,f_i,equality,parameters,option
 % example J(X) = l(X) + e1' Omega1 e1 + e2' Omega2 e2
 %  ....>  f_0.cost = l(X); f_0.error= {e1,e2}; f_0.omega = {Omega1,Omega2}
 % if we have only l(X) we can say f_0 = l(X)
-% f_i is cell of  the inquality constraints
-% equality is  cell the inquality constraints
+% f_i is matrix of  the inquality constraints
+% equality is  matrix the inquality constraints
 % decision_variables : the decision variables of the optimization  problem
 % parameters         : the constants of the optimization problem
 %%
@@ -49,7 +49,7 @@ if isstruct(f_0)
     if isfield(f_0, 'cost')
         f_0_cost = f_0.cost;
     else
-        f_0_cost = [];
+        f_0_cost = 0;
     end
     error = f_0.error;
     information_matrix = f_0.omega;
@@ -58,13 +58,15 @@ else
     information_matrix = [];
 
 end
-f_0_tatal = 0 + f_0_cost;
+f_0_tatal = 0 + f_0_cost; 
+grad_L = 0;
 
 if ~isempty(f_0_cost)
     jac_f_0_cost   = jacobian(f_0_cost,X_); % the first derivate of cost, i.e nebla_f_0
     hess_f_0_cost   = hessian(f_0_cost,X_)  ;
     KKT_matrix = KKT_matrix + hess_f_0_cost ;
     KKT_vector = KKT_vector + -jac_f_0_cost' ;
+    grad_L = grad_L +jac_f_0_cost';
 end
 
 %2 error terms (cost) (least squares)
@@ -72,17 +74,16 @@ for i = 1 : max(size(information_matrix))
     jac_error_cost = jacobian(error{1,i},X_);
     KKT_matrix = KKT_matrix + jac_error_cost'*information_matrix{1,i}*jac_error_cost;
     KKT_vector = KKT_vector + -jac_error_cost'*information_matrix{1,i}*error{1,i};
-    f_0_tatal = f_0_tatal + error{1,i}'*information_matrix*error{1,i};
+    f_0_tatal = f_0_tatal + error{1,i}'*information_matrix{1,i}*error{1,i};
+    grad_L = grad_L + jacobian(error{1,i},X_)'*information_matrix{1,i}*error{1,i};
 end
 
-L = L + f_0_tatal;
 
 
 % inequality constraints
 if q>0
     f_i = lhs(f_i) - rhs(f_i);  % the inequality constraints in form f<=0
     f_i_slack = f_i + slack;  % slack ensures the inequality constraints are converted to equalities
-    L = L + lambda'*f_i ;
 end
 for i= 1 : q
     jac_error_ineq= jacobian(f_i_slack(i),X_);
@@ -90,6 +91,8 @@ for i= 1 : q
     KKT_matrix = KKT_matrix + jac_error_ineq'*omega_ineq*jac_error_ineq;
     Weighted_error = - (omega_ineq*f_i_slack(i)+ lambda(i));
     KKT_vector = KKT_vector + jac_error_ineq'*Weighted_error;
+    grad_L = grad_L + lambda(i)*jacobian(f_i(i),X_)';
+
 end
 
 
@@ -97,7 +100,6 @@ end
 
 if l>0
     equality =  lhs(equality) - rhs(equality) ;  % the equality constraints in form g==0
-    L = L + gamma'*equality;
 end
 for i= 1 : l
     jac_error_eq = jacobian(equality(i),X_);
@@ -105,6 +107,7 @@ for i= 1 : l
     KKT_matrix = KKT_matrix + jac_error_eq'*omega_eq*jac_error_eq;
     Weighted_error = - (omega_eq*equality(i)+ gamma(i));
     KKT_vector = KKT_vector + jac_error_eq'*Weighted_error;
+   grad_L = grad_L + gamma(i)*jacobian(equality(i),X_)';
 end
  
 
@@ -116,7 +119,6 @@ KKT_vector_func= sym2func(KKT_vector,'Vars',input,option);
 
 f_0_func    = sym2func(f_0_tatal,'Vars',input,option); % for evaluation after finishing the calculations
 
-grad_L       = gradient(L,X_);
 grad_L_func  = matlabFunction(grad_L,'Vars',input); % for evaluation after finishing the calculations
 
 if   ~isempty(slack)
