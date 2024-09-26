@@ -66,7 +66,7 @@ ro_eq   = ro_eq0 * ones(l,1) ;
 
 
 f_i    =    callfunc(f_i_func,[x; parameters] ,function_structure);
-slack  = max(0,-[lambda./(2*ro_ineq)+f_i; parameters]);
+slack  = max(0,-(lambda./(2*ro_ineq) + f_i));
 
 
 input= [x; parameters; slack; lambda; gamma; ro_ineq; ro_eq];
@@ -76,18 +76,9 @@ while true
     num_iteration = num_iteration +1 ;
     s = 1;
 
-
-    f_i    =    callfunc(f_i_func,[x; parameters] ,function_structure);
-    slack  = max(0,-[lambda./(2*ro_ineq)+f_i; parameters]);
-
-
-    input= [x; parameters; slack; lambda; gamma; ro_ineq; ro_eq];
-
     if KKT.option.data_recording==1
         %2- ####### data_recording
         x_record{num_iteration}                  = x      ;
-        slack_record{num_iteration}              = slack ;
-        lambda_record{num_iteration}             = lambda     ;
         gamma_record{num_iteration}              = gamma    ;
         ro_ineq_record{num_iteration}            = ro_ineq    ;
         ro_eq_record{num_iteration}              = ro_eq    ;
@@ -103,20 +94,26 @@ while true
 
     Newton_step       = KKT_matrix\KKT_vector ;
 
-
-
+    if sum(isnan(Newton_step)>0)
+        num_iteration
+        iterations_max
+    end
+    
     %4- ###### variables update ##########
     x            = x       + s*Newton_step;
+
+
 
     %5- ###### update other variables  ##########
     f_i    =    callfunc(f_i_func,[x; parameters] ,function_structure);
     equality =   callfunc(equality_func,[x; parameters] ,function_structure);
 
-    lambda       = max(0, lambda  + 2*ro_ineq.*f_i)        ;
-    slack        = max(0,-[lambda./(2*ro_ineq)+f_i; parameters]);
-    gamma        = gamma   +2*ro_eq.*equality            ;
+    lambda       = max(0, lambda  + 2*ro_ineq.*f_i)   ;
+    slack        = max(0,-(lambda./(2*ro_ineq) + f_i));
+    gamma        = gamma   +2*ro_eq.*equality         ;
 
-   
+     slack_record{num_iteration}              = slack ;
+
    
    
 
