@@ -43,9 +43,10 @@ for check_options = 1
     gamma  = sym('gamma',[l 1],'real');     % the dual variables for the equaltiy constriants
     syms t       real;
 
-    L = 0;
-     
-
+    assume(decision_variables,'real')
+    if ~isempty(parameters)
+        assume(parameters,'real')
+    end
     %% the Newten step
     if isrow(decision_variables)
         decision_variables = decision_variables';
@@ -134,9 +135,9 @@ for check_options = 1
     if option.find_feasible_point
         if ~isempty (f_i)
             syms level_unique real %
-            f_0_x_start= level_unique; % level_unique = k in my forumation
-            f_i_x_start = f_i<= level_unique;
-            decision_variables_x_start= [ level_unique;decision_variables];
+            f_0_x_start = level_unique; % level_unique = k in my forumation
+            f_i_x_start = f_i <= level_unique;
+            decision_variables_x_start= [level_unique;decision_variables];
             option.find_feasible_point=0; % to avoid infinite loop
             [KKT_x_start] = KKT_PD_standard_LS(decision_variables_x_start,f_0_x_start,f_i_x_start,[],parameters,option);
             option.find_feasible_point=1; % to return it to its correct value
