@@ -141,6 +141,8 @@ switch algorithm
         [KKT] = KKT_AL_LS(decision_variables,f_0,f_i,equality,parameters,option);
     case 'barrier'
         [KKT] = KKT_barrier(decision_variables,f_0,f_i,equality,parameters,option);
+    case 'barrier_LS'
+        [KKT] = KKT_barrier_LS(decision_variables,f_0,f_i,equality,parameters,option);
       
     otherwise
       error("algorithm must be one of the following:'AL_LS', 'PD_standard_LS', 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")

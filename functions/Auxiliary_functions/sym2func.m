@@ -1,4 +1,4 @@
-function f = sym2func(symbolic_Array,not_important,input_arguments,option)
+function f = sym2func(symbolic_Array,~,input_arguments,option)
 % sym2func(symbolic_Array,not_important,input_arguments,option)
 % this function convert from symbolic variable to handle function.
 % It does the job of matlabFunction but faster and works only when all 

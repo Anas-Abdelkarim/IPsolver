@@ -5,7 +5,6 @@ bar_solver = [] ;
 KKT_matrix_func       = KKT.KKT_matrix_func         ;
 KKT_vector_func       = KKT.KKT_vector_func         ;
 f_0_func              = KKT.f_0_func                ;
-f_0_bar_func          = KKT.f_0_bar_func            ;
 f_i_func              = KKT.f_i_func                ;
 decrement_func        = KKT.decrement_func          ;
 grad_L_func           = KKT.grad_L_func             ;
@@ -224,20 +223,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
                 end
             end
 
-            % %%%%%%% 3-C backtrack the cost function
-            while true
-            c_backTracking =c_backTracking+1 ;
             
-            x_update     = x       + s*Delta_x     ;
-            input_update =[x_update;parameters_subs;gamma;t];
-            
-            if callfunc(f_0_bar_func,input_update,function_structure)>callfunc(f_0_bar_func,input,function_structure)+beta*s*decrement& s>1e-20
-            s=alpha*s;
-            else
-            break
-            end
-            
-            end
             
             
 

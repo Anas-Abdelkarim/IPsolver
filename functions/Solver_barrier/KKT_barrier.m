@@ -38,10 +38,14 @@ q =  length(f_i);  % q is the number of the inqaulity constraints
 l =  length(equality); % p is the number of the eqautilty constraints
 gamma  = sym('gamma',[l 1],'real');     % the dual variables for the equaltiy constriants 
 
+assume(decision_variables,'real')
+if ~isempty(parameters)
+    assume(parameters,'real')
+end
 
 L = f_0;
 
-syms t       real;
+syms t real;
 %%  First and (second) derivates*
 %inequaility constraints
 f = [];
@@ -49,11 +53,14 @@ if   ~isempty(f_i)
     f = lhs(f_i) - rhs(f_i) ;  % the inequaility constraints in form f<=0
 end
 if   ~isempty(f)
-    f_0_bar = f_0-sum(log(-f)/t) ;% approximation of the inequalities
-    L = L + f_0_bar;
+    %f_0_bar = t*f_0-sum(log(-f)) ;% approximation of the inequalities
+     f_0_bar = f_0-sum(log(-f)/t) ;% approximation of the inequalities
 else
     f_0_bar = f_0;
 end
+
+L = f_0_bar;
+
  
 grad_f_0_bar   = jacobian(f_0_bar,decision_variables)' ; % the first derivate of cost, i.e nebla_f
 hess_f_0_bar   = hessian(f_0_bar,decision_variables)  ;
