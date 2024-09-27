@@ -1,4 +1,4 @@
-function [bar_solver] = solver_barrier(KKT,x_start,parameters_subs,warm_start)
+function [bar_solver] = solver_barrier_LS(KKT,x_start,parameters_subs,warm_start)
 %solver_bar(KKT,x_start,parameters_subs,warm_start)
 tic
 bar_solver = [] ;
@@ -13,6 +13,7 @@ option                = KKT.option                  ;
 n                     = KKT.facts(1)                ; %number of the decsion variable
 q                     = KKT.facts(2)                ; %number of the inqualities
 l                     = KKT.facts(3)                ; %number of the  equalities
+update_dual           = KKT.facts(4)                ; % update gamma
 settings              = solver_settings             ;
 nu                    = settings.nu                 ;
 theta                 = settings.theta              ;
@@ -138,8 +139,16 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
     nu = 30
     t = .1;
     t_array= {t, 2 ,300,1200};
+ 
 
-
+    if ~update_dual
+        r_pri=callfunc(equality_func,input,function_structure);
+        if norm(r_pri)  >epsilon_feas
+            error("You are using option.update_dual =0;" + ...
+                  " But this option in barrier methods requires the initial guess to satisfy the equality.\n " + ...
+                  "Either change option.update_dual =1 or use a feasible initial guess" )
+        end
+    end
     %% The algorithm
     while true
         num_inner_iteration  = 0         ;
@@ -231,8 +240,11 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
             %4- ###### variables update ##########
 
             x      = x     + s*Delta_x                    ;
-            gamma  = gamma + s*Delta_gamma                ;
-
+            if update_dual
+                gamma  = gamma + s*Delta_gamma            ;
+            else
+                gamma = Delta_gamma                       ;
+            end
             input  = [x;parameters_subs;gamma;t]          ;
 
             if   isfield(option,'search_x_start_flag')
@@ -257,9 +269,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
         t_record{num_iteration} = t;
 
         %3- ##### Stopping criterion for barrier method ##########
-
-
-        if  1/t<=epsilon     ||q==0
+           if  1/t<=epsilon     ||q==0
             f_i  =callfunc(f_i_func,input,function_structure);
             r_pri=callfunc(equality_func,input,function_structure);
             stop = norm(grad_L) <epsilon_feas && ...

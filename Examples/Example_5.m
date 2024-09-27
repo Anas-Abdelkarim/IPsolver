@@ -40,20 +40,25 @@ equality=     x+y ==  20;                        %the equality constraints.
 %% call the solver
 % Type the commad (help IPsolver) for more details
 decision_variables= [x y];  % the decision variables names of the optimization problem
-x_initial=[-2000,10];
+x_initial=[-100,1200];
 
-switch 5
+switch 1
+
     case 1
-        algorithm    = 'barrier';
+        algorithm = 'barrier_LS'; 
     case 2
-        algorithm = 'primal_dual_standard'   ;
-    case 3
-        algorithm = 'primal_dual'   ;
-    case 4
         algorithm = 'PD_standard_LS';
-    case 5
+    case 3
         algorithm = 'AL_LS';
+    case 4
+        algorithm = 'barrier';
+    case 5
+        algorithm = 'primal_dual_standard'   ;
+    case 6
+        algorithm = 'primal_dual'   ;
+  
 end
+
 solution= IPsolver(x_initial,decision_variables,f_0,f_i,equality,algorithm);
 
 % Extract the results

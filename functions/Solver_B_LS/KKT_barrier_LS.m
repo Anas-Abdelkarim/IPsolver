@@ -1,4 +1,4 @@
-function [KKT] = KKT_barrier(decision_variables,f_0,f_i,equality,parameters,option);
+function [KKT] = KKT_barrier_LS(decision_variables,f_0,f_i,equality,parameters,option)
 %KKT_sb(decision_variables,f,g,h,parameters,option);.
 %This function is run offline. All functions required for the online
 %optimization is saved.
@@ -12,7 +12,7 @@ function [KKT] = KKT_barrier(decision_variables,f_0,f_i,equality,parameters,opti
 
 
 for check_options = 1
-    if ~exist('option')
+    if ~exist('option','var')
         option= options_check([]);
     else
         if~isfield(option,'check_done')
@@ -28,6 +28,12 @@ for check_options = 1
     else
         elimination_flag=0;
     end
+    
+    if option.update_dual
+        update_dual = 1;
+    else
+        update_dual = 0;
+    end 
 
 
 end
@@ -116,7 +122,12 @@ end
         error_eq = [equality(i), gamma(i)]';
         jac_error_eq = jacobian(error_eq,X_);
         KKT_matrix = KKT_matrix + jac_error_eq'*omega_eq*jac_error_eq;
-        KKT_vector = KKT_vector + -jac_error_eq'*omega_eq*error_eq;
+        if update_dual
+            KKT_vector = KKT_vector + -jac_error_eq'*omega_eq*error_eq;
+        else
+            Weighted_error = [0;0];
+            KKT_vector = KKT_vector + jac_error_eq' * Weighted_error;
+        end
         grad_L =  grad_L + gamma(i)*jacobian(equality(i),decision_variables)';
     end
 
@@ -187,5 +198,5 @@ KKT.elimination_flag            = elimination_flag  ;
 KKT.option                      = option         ;
 KKT.KKT_x_start                 = KKT_x_start    ;
 KKT.algorithm                   = 'barrier_LS'      ;
-KKT.facts                       = [n q l ]; %number of the decsion variable;inqualities and equalities
+KKT.facts                       = [n q l update_dual ]; %number of the decsion variable;inqualities and equalities
 end
