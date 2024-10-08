@@ -4,7 +4,6 @@ tic
 pd_solver               = []                           ;
 KKT_matrix_func         = KKT.KKT_matrix_func          ;
 KKT_vector_func         = KKT.KKT_vector_func          ;
-Delta_lambda_func       = KKT.Delta_lambda_func     ;
 eta_hat_func            = KKT.eta_hat_func             ;
 r_t_func                = KKT.r_t_func                 ; 
 r_dual_func             = KKT.r_dual_func              ;

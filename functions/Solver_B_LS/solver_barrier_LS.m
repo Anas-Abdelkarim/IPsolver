@@ -136,9 +136,8 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
     input        = [x;parameters_subs;gamma;t];
 
 
-    nu = 30
-    t = .1;
-    t_array= {t, 2 ,300,1200};
+    nu = 20;
+    t = .2;
  
 
     if ~update_dual
@@ -219,22 +218,28 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
                     c_inTrack = c_inTrack+1 ;
                     x_update     = x       + s*Delta_x     ;
                     input_update = [x_update;parameters_subs;gamma;t];
-                    f_i_update  =callfunc(f_i_func,input_update,function_structure);
-                    index_out_interior{c_inTrack}= find(f_i_update>=-0.000000000001);
-
-                    if ~isempty(index_out_interior{c_inTrack})& s>1e-20
+                    f_i_update  = callfunc(f_i_func,input_update,function_structure);
+                    index_out_interior= find(f_i_update>=-0.000000000001);
+                    if num_iteration <10
+                        if c_inTrack <4
+                            alpha = .9;
+                        elseif  c_inTrack <8
+                            alpha = .8;
+                        else
+                            alpha =.7;
+                        end
+                    else
+                        alpha =.9;
+                    end
+                    if ~isempty(index_out_interior)& s>1e-20
                         s=alpha*s;
-
-                        %disp('comming back to feasibility')
                     else
                         break
                     end
                 end
             end
 
-            
-            
-            
+
 
 
             %4- ###### variables update ##########
@@ -254,12 +259,11 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
             end
 
             % break to test my updating t
-            grad_L=callfunc(grad_L_func,input,function_structure);
-            if norm(grad_L) <= epsilon_feas *100
+            if norm(decrement) <= epsilon_feas ||   num_inner_iteration > iterations_max
                 num_inner_iteration_record{c_num_inner} =   num_inner_iteration
                 break
-
             end
+
         end
 
 
@@ -272,7 +276,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
            if  1/t<=epsilon     ||q==0
             f_i  =callfunc(f_i_func,input,function_structure);
             r_pri=callfunc(equality_func,input,function_structure);
-            stop = norm(grad_L) <epsilon_feas && ...
+            stop = norm(decrement) <epsilon_feas && ...
                 norm(r_pri)  <epsilon_feas&&...
                 sum(max(0,f_i) >epsilon_feas)==0  ;
             if stop
@@ -282,9 +286,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
         end
         %    tau=.01;nu=50;   to test my updating t
         %    t                        = t*(s*exp(-tau*norm(Delta_x))*nu+1) ;
-        if t<t_array{end}
-            t = t_array{c_num_inner+1};
-        end
+        t = nu*t;
         input(end) = t         ;
 
 
@@ -303,6 +305,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
         bar_solver.t_record                   = array2table([t_record{:}])                  ;
         bar_solver.x_record                   = array2table([x_record{:}])                  ;
         bar_solver.gamma_record               = array2table([gamma_record{:}])              ;
+        bar_solver.lambda_record              = []              ;
         bar_solver.num_inner_iteration_record = array2table([num_inner_iteration_record{:}]);
         bar_solver.search_x_start             = search_x_start                              ;
     end
