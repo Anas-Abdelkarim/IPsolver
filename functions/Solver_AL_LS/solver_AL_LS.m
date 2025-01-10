@@ -74,7 +74,7 @@ else
 end
 
 input= [x; parameters; active; lambda; gamma; ro_ineq; ro_eq];
- %% The algorithm
+%% The algorithm
 while true
     active
     num_iteration = num_iteration +1 ;
@@ -93,25 +93,24 @@ while true
     % using unfactorized KKT matrix
     Newton_step = 1
     i =0;
-    while norm(Newton_step) >.01
-        i = i+1;
-        KKT_matrix = callfunc(KKT_matrix_func,input,function_structure);
-        KKT_vector = callfunc(KKT_vector_func,input,function_structure);
+
+    i = i+1;
+    KKT_matrix = callfunc(KKT_matrix_func,input,function_structure);
+    KKT_vector = callfunc(KKT_vector_func,input,function_structure);
 
 
-        Newton_step       = KKT_matrix\KKT_vector 
+    Newton_step       = (KKT_matrix+2*eye(n,n))\KKT_vector
 
 
-        if sum(isnan(Newton_step)>0)
-            num_iteration
-            iterations_max
-        end
-
-        %4- ###### variables update ##########
-        s  =.2;    x  =  x  + s*Newton_step;
-     input= [x; parameters; active; lambda; gamma; ro_ineq; ro_eq];
+    if sum(isnan(Newton_step)>0)
+        num_iteration
+        iterations_max
     end
-      num_iteration_inner(num_iteration) = i
+
+    %4- ###### variables update ##########
+    s  =1;    x  =  x  + s*Newton_step;
+    input= [x; parameters; active; lambda; gamma; ro_ineq; ro_eq];
+    num_iteration_inner(num_iteration) = i
 
 
     %5- ###### update other variables  ##########
@@ -161,7 +160,7 @@ while true
         if KKT.option.data_recording==1
             %2- ####### data_recording
             x_record{num_iteration}                  = x      ;
-            lambda_record{num_iteration}              = lambda    ;
+            lambda_record{num_iteration}             = lambda    ;
             gamma_record{num_iteration}              = gamma    ;
             ro_ineq_record{num_iteration}            = ro_ineq    ;
             ro_eq_record{num_iteration}              = ro_eq    ;

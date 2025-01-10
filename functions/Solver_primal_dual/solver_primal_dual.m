@@ -212,7 +212,7 @@ while true
     input_update =[x_update;parameters_subs;slack_update;lambda_update;gamma_update;t];
    
     r_t_update = callfunc(r_t_func,input_update,function_structure);
-     if norm(r_t_update)>(1-beta*s)*norm(r_t) & s>1e-20
+     if norm(r_t_update)>(1-beta*s)*norm(r_t) && s>.1
         s=alpha/c_backTracking*s;
      else                  
          break       

@@ -161,11 +161,13 @@ if isa(varargin{1},'double')
  algorithm = algorithm_check(algorithm);
   
   if ~isempty(parameters)
-      f_0= subs(f_0,parameters,parameters_subs)  ;
-      f_i= subs(f_i,parameters,parameters_subs)  ;
-      equality= subs(equality,parameters,parameters_subs)  ;
-      parameters=[];
-      parameters_subs=[];
+      if 0 % 0 if I want to keep parameters and give the value when the solver is called
+          f_0= subs(f_0,parameters,parameters_subs)  ;
+          f_i= subs(f_i,parameters,parameters_subs)  ;
+          equality= subs(equality,parameters,parameters_subs)  ;
+          parameters=[];
+          parameters_subs=[];
+      end
   end
   
   [KKT1] = KKT(decision_variables,f_0,f_i,equality,parameters,algorithm,option);   

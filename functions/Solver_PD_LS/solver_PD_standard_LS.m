@@ -286,7 +286,7 @@ while true
     eta_hat     = callfunc(eta_hat_func,input,function_structure)     ;
 
 
-    switch 1
+    switch 2
         case 1
             grad_L     = callfunc(grad_L_func,input,function_structure)     ;
             f_i     = callfunc(f_i_func,input,function_structure)     ;

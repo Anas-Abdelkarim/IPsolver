@@ -118,7 +118,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    %% Initialization
+    %% Initializationomega6
     num_iteration   = 0         ;
     num_iteration_Newton=0 ;
     num_inner_iteration = 0      ;
@@ -127,17 +127,20 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
     if isfield (warm_start,'gamma_optimal')
         gamma = warm_start.gamma_optimal;
     else
-        gamma    = settings.gamma_0*ones(l,1);
+        gamma    = 0*.1* settings.gamma_0*ones(l,1);
     end
 
     s=[];
     t                = settings.t_0        ;
     x= x_start                             ;
-    input        = [x;parameters_subs;gamma;t];
-
 
     nu = 20;
     t = .2;
+
+    input        = [x;parameters_subs;gamma;t];
+
+
+
  
 
     if ~update_dual
@@ -175,6 +178,9 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
             KKT_matrix= callfunc(KKT_matrix_func,input,function_structure);
             KKT_vector= callfunc(KKT_vector_func,input,function_structure);
             Newton_step       = KKT_matrix\KKT_vector ;
+            if num_iteration ==1 
+                H = KKT_matrix; b =KKT_vector;
+            end
 
             % 1- ####### data_recording
             if KKT.option.data_recording==1 ;
@@ -305,9 +311,12 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
         bar_solver.t_record                   = array2table([t_record{:}])                  ;
         bar_solver.x_record                   = array2table([x_record{:}])                  ;
         bar_solver.gamma_record               = array2table([gamma_record{:}])              ;
-        bar_solver.lambda_record              = []              ;
+        bar_solver.lambda_record              = []                                           ;
         bar_solver.num_inner_iteration_record = array2table([num_inner_iteration_record{:}]);
         bar_solver.search_x_start             = search_x_start                              ;
+        bar_solver.H    = H   ;   bar_solver.b    = b   ;
+
+
     end
     bar_solver.solver_time                = toc                                         ;
 end
