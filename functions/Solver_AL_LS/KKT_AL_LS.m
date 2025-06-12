@@ -18,7 +18,7 @@ function [KKT] = KKT_AL_LS(decision_variables,f_0,f_i,equality,parameters,option
 %%
 % Check the options
 
-slack_flag = 0; % true = Bazzana et al. ; flase = Sodhi et al. 
+slack_flag = 1; % true = Bazzana et al. ; flase = Sodhi et al. 
 %% variables decleration
 n =  length(decision_variables) ; % n is the number of the decision variablesq
 q =  length(f_i);  % 	 is the number of the inqaulity constraints
@@ -88,10 +88,10 @@ end
 switch slack_flag
     case 1
         for i= 1 : q
-            jac_error_ineq= active(i)*jacobian(f_i(i),X_); % active if g(x)>-lambda/2*ro_ineqality
-            omega_ineq = ro_ineq(i);
+            jac_error_ineq= jacobian(f_i(i),X_); % active if g(x)>-lambda/2*ro_ineqality
+            omega_ineq = active(i)*ro_ineq(i);
             KKT_matrix = KKT_matrix + jac_error_ineq'*omega_ineq*jac_error_ineq;
-            Weighted_error = -(omega_ineq*f_i(i)+ .5*lambda(i));
+            Weighted_error = -active(i)*(omega_ineq*f_i(i)+ .5*lambda(i));
             KKT_vector = KKT_vector + jac_error_ineq'*Weighted_error;
             f_i_p = active(i)*f_i(i) + (1-active(i))*(-.5*lambda(i)/ro_ineq(i));
             L = L +  omega_ineq * f_i_p^2 + lambda(i) * f_i_p  ;

@@ -17,33 +17,33 @@
 clc
 clear
 
-syms x  y  z  s1 s2  k1 k2 real
+syms x  y   s1 s2  k1 k2 real
 flag_LS_cost = 1;
-decision_variables= [z];  % the decision variables names of the optimization problem
-x_initial = [60];
+x_initial = [-40,-150];
 
 
 switch flag_LS_cost
     case 0
         f_0     =    (x-25)^2 + (y-50)^2; % the cost function
     case 1
-        f_0.error = {z-50};
-        f_0.omega = {1};
+        f_0.error = {x-25,y-50};
+        f_0.omega = {1,1};
 
 end
 
  
-f_i     =  z <=  5;
-%f_i = []; 
+%f_i     =  x+ y - 1 <=  0 
+f_i = []; 
 
 equality= [ x==5;x+y ==20];  
-  equality=           []; %  x+y ==  20;                        %the equality constraints.
+ % equality=           []; %  x+y ==  20;                        %the equality constraints.
  
 
 %% call the solver
 % Type the commad (help IPsolver) for more details
+decision_variables= [x y];  % the decision variables names of the optimization problem
 
-switch 3
+switch 1
     case 1
         algorithm = 'barrier_LS'; 
     case 2
@@ -69,8 +69,6 @@ solver_time                =  solution.solver_time
 
 solution.x_record
 solution.lambda_record
-x_optimal_solution
-number_of_iterations
 %solution.gamma_record
 
 

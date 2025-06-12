@@ -233,8 +233,10 @@ switch KKT1.algorithm
         [IPsolver] = solver_barrier(KKT1,x_initial,parameters_subs,warm_start);
      case 'barrier_LS'
         [IPsolver] = solver_barrier_LS(KKT1,x_initial,parameters_subs,warm_start);
+    case "PDIS_LS"
+       [IPsolver] = solver_PDIS_LS(KKT1,x_initial,parameters_subs,warm_start);
     otherwise
-      error("algorithm must be one of the following:'barrier_LS','AL_LS', 'PD_standard_LS', 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")
+      error("algorithm must be one of the following:'barrier_LS', 'PDIS','AL_LS', 'PD_standard_LS', 'primal_dual','slack_barrier', 'barrier', or 'slack_barrier'. Type (help IPsolver) for more details")
 
 end
  end

@@ -29,7 +29,7 @@ search_x_start_flag         = 0;
 function_structure          = option.function_structure    ;
 
 % recodres
-if KKT.option.data_recording==1;
+if KKT.option.data_recording==1
     num_rec                    = 5*settings.records_num;
     t_record                   =cell(1,num_rec);
     s_record                   =cell(1,num_rec);
@@ -69,7 +69,7 @@ if isempty(x_start) % means we do not have x_start at all
 end
 
 
-if ~isempty(x_start) & ~accept_warm_start_ineq_flag
+if ~isempty(x_start) && ~accept_warm_start_ineq_flag
     %% check the feasibility of x_start
     if ~isempty(KKT.f_i) % we check if there is inequality to satisfy, the constraints on the salck are ignored
         input =[x_start;parameters_subs];
@@ -100,7 +100,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
     search_x_start=[];
     if search_x_start_flag==1
         KKT.KKT_x_start.option.search_x_start_flag=1;
-        [search_x_start] = solver_barrier(KKT.KKT_x_start,x_start_search,parameters_subs,[])
+        [search_x_start] = solver_barrier(KKT.KKT_x_start,x_start_search,parameters_subs,[]);
         x_start= search_x_start.x_optimal(2:end);
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -136,19 +136,22 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
 
     nu = 20;
     t = .2;
+    alphaBacktracking = [1, 0.9, 0.8, 0.6,.5, 0.4, 0.31 ,0.19, 0.08, ...
+        0.02, 1e-2, 1e-3,  1e-4, 1e-5,1e-7, 1e-9, ...
+        1e-10,1e-12, 1e-14, 1e-16, 1e-18, 1e-20];
 
     input        = [x;parameters_subs;gamma;t];
 
 
 
- 
+
 
     if ~update_dual
         r_pri=callfunc(equality_func,input,function_structure);
         if norm(r_pri)  >epsilon_feas
             error("You are using option.update_dual =0;" + ...
-                  " But this option in barrier methods requires the initial guess to satisfy the equality.\n " + ...
-                  "Either change option.update_dual =1 or use a feasible initial guess" )
+                " But this option in barrier methods requires the initial guess to satisfy the equality.\n " + ...
+                "Either change option.update_dual =1 or use a feasible initial guess" )
         end
     end
     %% The algorithm
@@ -157,17 +160,16 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
         c_backTracking    = 0 ; % counter of line search
         c_inTrack=0;
         c_num_inner = c_num_inner + 1;
-          
+
 
         disp(['Barrier algorithm. Iteration number ', num2str(num_iteration)])
-
 
 
 
         %1-###### Beginning of the inner loop  ##########
 
         while true
-                    num_iteration = num_iteration +1 ;
+            num_iteration = num_iteration +1 ;
 
 
             num_inner_iteration  = num_inner_iteration+1         ;
@@ -177,8 +179,11 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
             num_iteration_Newton= num_iteration_Newton+1;
             KKT_matrix= callfunc(KKT_matrix_func,input,function_structure);
             KKT_vector= callfunc(KKT_vector_func,input,function_structure);
+            tic
             Newton_step       = KKT_matrix\KKT_vector ;
-            if num_iteration ==1 
+
+            solver_time = toc
+            if num_iteration ==1
                 H = KKT_matrix; b =KKT_vector;
             end
 
@@ -220,28 +225,46 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
             % %%%%%%% 3-B  check if we are still inside the interior
 
             if ~isempty(f_i_func)
-                while true
-                    c_inTrack = c_inTrack+1 ;
-                    x_update     = x       + s*Delta_x     ;
-                    input_update = [x_update;parameters_subs;gamma;t];
-                    f_i_update  = callfunc(f_i_func,input_update,function_structure);
-                    index_out_interior= find(f_i_update>=-0.000000000001);
-                    if num_iteration <10
-                        if c_inTrack <4
-                            alpha = .9;
-                        elseif  c_inTrack <8
-                            alpha = .8;
-                        else
-                            alpha =.7;
+                switch 1
+                    case 0
+                        while true
+                            c_inTrack = c_inTrack+1 ;
+                            x_update     = x       + s*Delta_x     ;
+                            input_update = [x_update;parameters_subs;gamma;t];
+                            f_i_update  = callfunc(f_i_func,input_update,function_structure);
+                            index_out_interior= find(f_i_update>=-0.000000000001);
+                            if num_iteration <10
+                                if c_inTrack <4
+                                    alpha = .9;
+                                elseif  c_inTrack <8
+                                    alpha = .8;
+                                else
+                                    alpha =.7;
+                                end
+                            else
+                                alpha =.9;
+                            end
+                            if ~isempty(index_out_interior)&& s>1e-20
+                                s=alpha*s;
+                            else
+                                break
+                            end
                         end
-                    else
-                        alpha =.9;
-                    end
-                    if ~isempty(index_out_interior)& s>1e-20
-                        s=alpha*s;
-                    else
-                        break
-                    end
+
+
+                    case 1
+                        for k = 1 : length(alphaBacktracking)
+                            s = alphaBacktracking(k);
+
+                            x_update     = x       + s*Delta_x     ;
+                            input_update = [x_update;parameters_subs;gamma;t];
+                            f_i_update  = callfunc(f_i_func,input_update,function_structure);
+                            index_out_interior= find(f_i_update>=-0.000000000001);
+                            if isempty(index_out_interior)
+                                s;
+                                break
+                            end
+                        end
                 end
             end
 
@@ -266,7 +289,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
 
             % break to test my updating t
             if norm(decrement) <= epsilon_feas ||   num_inner_iteration > iterations_max
-                num_inner_iteration_record{c_num_inner} =   num_inner_iteration
+                num_inner_iteration_record{c_num_inner} =   num_inner_iteration;
                 break
             end
 
@@ -279,11 +302,11 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
         t_record{num_iteration} = t;
 
         %3- ##### Stopping criterion for barrier method ##########
-           if  1/t<=epsilon     ||q==0
+        if  1/t<=epsilon     ||q==0
             f_i  =callfunc(f_i_func,input,function_structure);
             r_pri=callfunc(equality_func,input,function_structure);
             stop = norm(decrement) <epsilon_feas && ...
-                norm(r_pri)  <epsilon_feas&&...
+                norm(r_pri)  <epsilon_feas &&...
                 sum(max(0,f_i) >epsilon_feas)==0  ;
             if stop
 
@@ -292,12 +315,14 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
         end
         %    tau=.01;nu=50;   to test my updating t
         %    t                        = t*(s*exp(-tau*norm(Delta_x))*nu+1) ;
-        t = nu*t;
+        if t < 1/epsilon
+            t = nu*t;
+        end
         input(end) = t         ;
 
 
     end
-    
+
     cost_value =callfunc(f_0_func,input,function_structure)                          ;
     %% return
     bar_solver.x_optimal                  = x                                           ;
@@ -305,7 +330,7 @@ if ~isempty(x_start) & ~accept_warm_start_ineq_flag
     bar_solver.gamma_optimal              = gamma                                       ;
     bar_solver.num_iteration              = num_iteration                               ;
     bar_solver.num_iteration_Newton       = num_iteration_Newton                        ;
-    if KKT.option.data_recording==1                                                     ;
+    if KKT.option.data_recording==1
         bar_solver.s_record                   = array2table([s_record{:}])                  ;
         bar_solver.Newton_step_record         = array2table([Newton_step_record{:}])        ;
         bar_solver.t_record                   = array2table([t_record{:}])                  ;
