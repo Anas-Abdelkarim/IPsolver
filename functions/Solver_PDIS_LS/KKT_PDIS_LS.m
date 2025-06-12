@@ -123,12 +123,11 @@ end
 
 
 Jacob_f_i       = jacobian(f_i,decision_variables) ;
-Jacob_equality = jacobian(equality,decision_variables) ; % the first derivate of equaility, i.e A matrix
 
 
 Delta_x      = sym('Delta_x',[n 1],'real');  % the update values of the decision variables
 if q > 0
-Delta_lambda= diag(slack.^-1)*diag(lambda)*(f_i+ Jacob_f_i*Delta_x) + 1/t*diag(slack.^-1);
+Delta_lambda= diag(slack.^-1)*diag(lambda)*(f_i+ Jacob_f_i*Delta_x) + 1/t*(slack.^-1);
 Delta_slack = -(slack + f_i+ Jacob_f_i*Delta_x) ;
 else 
 Delta_lambda=[];

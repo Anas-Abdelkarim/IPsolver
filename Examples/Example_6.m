@@ -63,7 +63,7 @@ end
 %% call the solver
 % Type the commad (help IPsolver) for more details
 
-switch 2
+switch 4
     case 1
         algorithm = 'barrier_LS';
     case 2
